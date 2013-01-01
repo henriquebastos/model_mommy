@@ -24,13 +24,13 @@ except ImportError:
     #BigIntegerField = IntegerField
 
 from model_mommy import mommy
-from model_mommy.models import Person
-from model_mommy.models import DummyIntModel, DummyPositiveIntModel
-from model_mommy.models import DummyNumbersModel
-from model_mommy.models import DummyDecimalModel, DummyEmailModel
-from model_mommy.models import DummyGenericForeignKeyModel
-from model_mommy.models import DummyFileFieldModel
-from model_mommy.models import DummyImageFieldModel
+from test.generic.models import Person
+from test.generic.models import DummyIntModel, DummyPositiveIntModel
+from test.generic.models import DummyNumbersModel
+from test.generic.models import DummyDecimalModel, DummyEmailModel
+from test.generic.models import DummyGenericForeignKeyModel
+from test.generic.models import DummyFileFieldModel
+from test.generic.models import DummyImageFieldModel
 
 __all__ = [
     'StringFieldsFilling', 'BooleanFieldsFilling', 'DateTimeFieldsFilling',
@@ -58,7 +58,7 @@ class FieldFillingTestCase(TestCase):
 class FillingFromChoice(FieldFillingTestCase):
 
     def test_if_gender_is_populated_from_choices(self):
-        from model_mommy.models import GENDER_CH
+        from test.generic.models import GENDER_CH
         self.assertTrue(self.person.gender in map(lambda x: x[0], GENDER_CH))
 
 
