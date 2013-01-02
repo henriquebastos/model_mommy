@@ -20,8 +20,9 @@ from django.db.models import get_models
 from decimal import Decimal
 from os.path import abspath, join, dirname
 from random import randint, choice, random
-import datetime
 import string
+
+from model_mommy.timezone import now
 
 
 MAX_LENGTH = 300
@@ -79,17 +80,21 @@ def gen_decimal(max_digits, decimal_places):
                               num_as_str(decimal_places)))
 gen_decimal.required = ['max_digits', 'decimal_places']
 
-gen_date = datetime.date.today
 
-gen_datetime = datetime.datetime.now
+def gen_date():
+    return now().date()
+
+
+def gen_datetime():
+    return now()
 
 
 def gen_time():
-    return datetime.datetime.now().time()
+    return now().time()
 
 
 def gen_string(max_length):
-    return ''.join(choice(string.printable) for i in range(max_length))
+    return ''.join(choice(string.ascii_letters) for i in range(max_length))
 gen_string.required = ['max_length']
 
 
