@@ -120,7 +120,7 @@ class Mommy(object):
 
     def __init__(self, model):
         self.type_mapping = default_mapping.copy()
-        if isinstance(model, str):
+        if isinstance(model, basestring):
             app_label, model_name = model.split('.')
             self.model = get_model(app_label, model_name)
             if not self.model:
