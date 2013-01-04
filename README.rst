@@ -246,24 +246,26 @@ This is useful when you have to create multiple objects and you have some unique
 Contributing
 ============
 
-1. Prepare a virtual environment.
+1. Prepare your development environment.
 
 .. code-block:: console
 
-    pip install virtualenvwrapper
-    mkvirtualenv --no-site-packages --distribute
+    git clone git@github.com:vandersonmota/model_mommy.git
+    cd model_mommy
+    virtualenv --distribute .
+    source bin/activate
 
 2. Install the requirements.
 
 .. code-block:: console
 
-    pip install -r requirements.txt
+    python setup.py develop test
 
 3. Run the tests.
 
 .. code-block:: console
 
-    make test
+    tox
 
 
 Inspiration

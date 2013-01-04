@@ -14,6 +14,12 @@ setuptools.setup(
     packages=["model_mommy"],
     include_package_data=True,  # declarations in MANIFEST.in
     install_requires=open(join(dirname(__file__), "requirements.txt")).readlines(),
+    tests_require=[
+        'django<1.5',
+        'pil',
+        'tox',
+    ],
+    test_suite='runtests.runtests',
     keywords="django testing factory python",
     classifiers=[
         'Framework :: Django',
