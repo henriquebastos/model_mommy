@@ -254,22 +254,22 @@ class Mommy(object):
 
             model_attrs[field.name] = self.generate_value(field)
 
+        # Process many to many fields.
         for field in model_klass._meta.many_to_many:
-            field_value_not_defined = field.name not in model_attrs
+            if field.name in model_attrs:
+                m2m_dict[field.name] = model_attrs.pop(field.name)
+                continue
 
             if isinstance(field, generic.GenericRelation):
                 continue
 
-            if field_value_not_defined:
-                if field.null:
-                    continue
-                elif not self.make_m2m:
-                    m2m_dict[field.name] = []
-                else:
-                    m2m_dict[field.name] = self.generate_value(field)
-            else:
-                m2m_dict[field.name] = model_attrs.pop(field.name)
+            if field.null:
+                continue
 
+            if not self.make_m2m:
+                m2m_dict[field.name] = []
+            else:
+                m2m_dict[field.name] = self.generate_value(field)
 
         instance = model_klass(**model_attrs)
 
