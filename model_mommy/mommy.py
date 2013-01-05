@@ -277,11 +277,10 @@ class Mommy(object):
         if commit:
             instance.save()
 
-            # m2m relation is treated differently
+            # Persist m2m objects
             for rel_name, rel_objects in m2m_objects.items():
                 m2m_relation = getattr(instance, rel_name)
-                for obj in rel_objects:
-                    m2m_relation.add(obj)
+                m2m_relation.add(*tuple(rel_objects))
 
         return instance
 
