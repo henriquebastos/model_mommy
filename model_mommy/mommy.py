@@ -230,12 +230,11 @@ class Mommy(object):
         fk_attrs = dict((k, v) for k, v in attrs.items() if is_fk_field(k))
         fk_fields = [x.split('__')[0] for x in fk_attrs.keys() if is_fk_field(x)]
 
-        fields = model_klass._meta.fields + model_klass._meta.many_to_many
 
-        for field in fields:
+        for field in model_klass._meta.fields:
             field_value_not_defined = field.name not in model_attrs
 
-            if isinstance(field, (AutoField, generic.GenericRelation)):
+            if isinstance(field, AutoField):
                 continue
 
             if isinstance(field, ForeignKey) and field.name in fk_fields:
@@ -248,22 +247,28 @@ class Mommy(object):
                 if field.has_default() or field.blank:
                     continue
 
-            if isinstance(field, ManyToManyField):
-                if field_value_not_defined:
-                    if field.null:
-                        continue
-                    elif not self.make_m2m:
-                        m2m_dict[field.name] = []
-                    else:
-                        m2m_dict[field.name] = self.generate_value(field)
-                else:
-                    m2m_dict[field.name] = model_attrs.pop(field.name)
-
-            elif field_value_not_defined:
+            if field_value_not_defined:
                 if field.null:
                     continue
                 else:
                     model_attrs[field.name] = self.generate_value(field)
+
+        for field in model_klass._meta.many_to_many:
+            field_value_not_defined = field.name not in model_attrs
+
+            if isinstance(field, generic.GenericRelation):
+                continue
+
+            if field_value_not_defined:
+                if field.null:
+                    continue
+                elif not self.make_m2m:
+                    m2m_dict[field.name] = []
+                else:
+                    m2m_dict[field.name] = self.generate_value(field)
+            else:
+                m2m_dict[field.name] = model_attrs.pop(field.name)
+
 
         instance = model_klass(**model_attrs)
 
