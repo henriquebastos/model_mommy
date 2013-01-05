@@ -231,27 +231,28 @@ class Mommy(object):
         fk_fields = [x.split('__')[0] for x in fk_attrs.keys() if is_fk_field(x)]
 
 
+        # Process normal model fields.
         for field in model_klass._meta.fields:
-            field_value_not_defined = field.name not in model_attrs
-
-            if isinstance(field, AutoField):
-                continue
-
+            # TODO: There should be no different treatment for FKs.
             if isinstance(field, ForeignKey) and field.name in fk_fields:
                 model_attrs[field.name] = self.generate_value(field, **fk_attrs)
                 continue
 
-            # If not specified, django automatically sets blank=True and
-            # default on BooleanFields so we don't need to check these
-            if not isinstance(field, BooleanField):
-                if field.has_default() or field.blank:
+            # Must be the 1st verification
+            if field.name in model_attrs:
+                continue
+
+            if isinstance(field, AutoField):
+                continue
+
+            if field.null:
+                continue
+
+            if (field.blank or field.has_default()) and \
+                not isinstance(field, BooleanField):
                     continue
 
-            if field_value_not_defined:
-                if field.null:
-                    continue
-                else:
-                    model_attrs[field.name] = self.generate_value(field)
+            model_attrs[field.name] = self.generate_value(field)
 
         for field in model_klass._meta.many_to_many:
             field_value_not_defined = field.name not in model_attrs
