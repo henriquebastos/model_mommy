@@ -223,23 +223,23 @@ class Mommy(object):
             return [self._make_one(model, commit=_commit, **attrs) for i in xrange(_quantity)]
 
     #Method too big
-    def _make_one(self, model_klass, commit=True, **attrs):
-        m2m_dict = {}
-        is_fk_field = lambda x: '__' in x
-        model_attrs = dict((k, v) for k, v in attrs.items() if not is_fk_field(k))
-        fk_attrs = dict((k, v) for k, v in attrs.items() if is_fk_field(k))
-        fk_fields = [x.split('__')[0] for x in fk_attrs.keys() if is_fk_field(x)]
+    def _make_one(self, model, commit=True, **raw_attrs):
+        m2m_objects = {}
+        is_rel_attr = lambda a: '__' in a
+        attrs = {a: v for a, v in raw_attrs.items() if not is_rel_attr(a)}
+        rel_attrs = {a: v for a, v in raw_attrs.items() if is_rel_attr(a)}
+        rel_fields = [a.split('__')[0] for a in rel_attrs.keys() if is_rel_attr(a)]
 
 
         # Process normal model fields.
-        for field in model_klass._meta.fields:
+        for field in model._meta.fields:
             # TODO: There should be no different treatment for FKs.
-            if isinstance(field, ForeignKey) and field.name in fk_fields:
-                model_attrs[field.name] = self.generate_value(field, **fk_attrs)
+            if isinstance(field, ForeignKey) and field.name in rel_fields:
+                attrs[field.name] = self.generate_value(field, **rel_attrs)
                 continue
 
             # Must be the 1st verification
-            if field.name in model_attrs:
+            if field.name in attrs:
                 continue
 
             if isinstance(field, AutoField):
@@ -252,12 +252,12 @@ class Mommy(object):
                 not isinstance(field, BooleanField):
                     continue
 
-            model_attrs[field.name] = self.generate_value(field)
+            attrs[field.name] = self.generate_value(field)
 
         # Process many to many fields.
-        for field in model_klass._meta.many_to_many:
-            if field.name in model_attrs:
-                m2m_dict[field.name] = model_attrs.pop(field.name)
+        for field in model._meta.many_to_many:
+            if field.name in attrs:
+                m2m_objects[field.name] = attrs.pop(field.name)
                 continue
 
             if isinstance(field, generic.GenericRelation):
@@ -271,17 +271,17 @@ class Mommy(object):
             else:
                 m2m_dict[field.name] = self.generate_value(field)
 
-        instance = model_klass(**model_attrs)
+        instance = model(**attrs)
 
         # m2m only works for persisted instances
         if commit:
             instance.save()
 
             # m2m relation is treated differently
-            for key, value in m2m_dict.items():
-                m2m_relation = getattr(instance, key)
-                for model_instance in value:
-                    m2m_relation.add(model_instance)
+            for rel_name, rel_objects in m2m_objects.items():
+                m2m_relation = getattr(instance, rel_name)
+                for obj in rel_objects:
+                    m2m_relation.add(obj)
 
         return instance
 
