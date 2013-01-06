@@ -222,11 +222,18 @@ class Mommy(object):
         elif _quantity > 1:
             return [self._make_one(model, commit=_commit, **attrs) for i in xrange(_quantity)]
 
-    #Method too big
-    def _make_one(self, model, commit=True, **raw_attrs):
-        m2m_objects = {}
-        attrs = {}
-        rel_attrs = {}
+    def _separate_attributes(self, raw_attrs):
+        '''
+        Separate normal attributes and relational attributes.
+        Example:
+        >>> raw_dog_attrs = dict(name='Snoopy', owner__name='Charlie Brown', breed__name='Beagle')
+        >>> attrs, rel_attrs = self._separate_attributes(raw_dog_attrs)
+        >>> print attrs
+        {'name': 'Snoopy'}
+        >>> print rel_attrs
+        {'owner': {'name': 'Charlie Brown'}, 'breed': {'name': 'Beagle'}}
+        '''
+        attrs, rel_attrs = {}, {}
         is_rel_attr = lambda a: '__' in a
         for attr, value in raw_attrs.items():
             if is_rel_attr(attr):
@@ -234,6 +241,12 @@ class Mommy(object):
                 rel_attrs.setdefault(rel, {}).update({rel_or_field: value})
             else:
                 attrs[attr] = value
+        return attrs, rel_attrs
+
+    #Method too big
+    def _make_one(self, model, commit=True, **raw_attrs):
+        m2m_objects = {}
+        attrs, rel_attrs = self._separate_attributes(raw_attrs)
 
         # Process normal model fields.
         for field in model._meta.fields:
