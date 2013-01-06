@@ -43,9 +43,8 @@ class ModelFinderTest(TestCase):
             mommy.prepare_one('NonExistingModel')
 
 
-class MommyCreatesSimpleModel(TestCase):
-
-    def test_make_one_should_create_one_object(self):
+class SingleModelTest(TestCase):
+    def test_make_should_create_one_object(self):
         person = mommy.make_one(Person)
         self.assertIsInstance(person, Person)
 
@@ -69,8 +68,7 @@ class MommyCreatesSimpleModel(TestCase):
         self.assertTrue(all(p.name == "George Washington" for p in people))
 
 
-class MommyCreatesAssociatedModels(TestCase):
-
+class ForeignKeyTest(TestCase):
     def test_dependent_models_with_ForeignKey(self):
         dog = mommy.make_one(Dog)
         self.assertIsInstance(dog.owner, Person)
@@ -84,6 +82,30 @@ class MommyCreatesAssociatedModels(TestCase):
         self.assertEqual(Person.objects.all().count(), 0)
         self.assertEqual(Dog.objects.all().count(), 0)
 
+    def test_ForeignKey_model_field_population(self):
+        dog = mommy.make_one(Dog, breed='X1', owner__name='Bob')
+        self.assertEqual('X1', dog.breed)
+        self.assertEqual('Bob', dog.owner.name)
+
+    def test_ForeignKey_model_field_population_should_work_with_prepare(self):
+        dog = mommy.prepare_one(Dog, breed='X1', owner__name='Bob')
+        self.assertEqual('X1', dog.breed)
+        self.assertEqual('Bob', dog.owner.name)
+
+    def test_ForeignKey_model_field_population_for_not_required_fk(self):
+        user = mommy.make_one(User, profile__email="a@b.com")
+        self.assertEqual('a@b.com', user.profile.email)
+
+    def test_does_not_creates_null_ForeignKey(self):
+        user = mommy.make_one(User)
+        self.assertFalse(user.profile)
+
+    def test_ensure_recursive_ForeignKey_population(self):
+        bill = mommy.make_one(PaymentBill, user__profile__email="a@b.com")
+        self.assertEqual('a@b.com', bill.user.profile.email)
+
+
+class OneToOneTest(TestCase):
     def test_create_one_to_one(self):
         lonely_person = mommy.make_one(LonelyPerson)
 
@@ -91,6 +113,7 @@ class MommyCreatesAssociatedModels(TestCase):
         self.assertTrue(isinstance(lonely_person.only_friend, Person))
         self.assertEquals(Person.objects.all().count(), 1)
 
+class ManyToManyTest(TestCase):
     def test_create_many_to_many(self):
         store = mommy.make_one(Store)
         self.assertEqual(store.employees.count(), 5)
@@ -116,28 +139,6 @@ class MommyCreatesAssociatedModels(TestCase):
         self.assertEqual(person.name, 'John')
         self.assertEqual(person.gender, 'M')
 
-    def test_ForeignKey_model_field_population(self):
-        dog = mommy.make_one(Dog, breed='X1', owner__name='Bob')
-        self.assertEqual('X1', dog.breed)
-        self.assertEqual('Bob', dog.owner.name)
-
-    def test_ForeignKey_model_field_population_should_work_with_prepare(self):
-        dog = mommy.prepare_one(Dog, breed='X1', owner__name='Bob')
-        self.assertEqual('X1', dog.breed)
-        self.assertEqual('Bob', dog.owner.name)
-
-    def test_ForeignKey_model_field_population_for_not_required_fk(self):
-        user = mommy.make_one(User, profile__email="a@b.com")
-        self.assertEqual('a@b.com', user.profile.email)
-
-    def test_does_not_creates_null_ForeignKey(self):
-        user = mommy.make_one(User)
-        self.assertFalse(user.profile)
-
-    def test_ensure_recursive_ForeignKey_population(self):
-        bill = mommy.make_one(PaymentBill, user__profile__email="a@b.com")
-        self.assertEqual('a@b.com', bill.user.profile.email)
-
 
 class HandlingUnsupportedModels(TestCase):
     def test_unsupported_model_raises_an_explanatory_exception(self):
@@ -148,13 +149,13 @@ class HandlingUnsupportedModels(TestCase):
             self.assertTrue('not supported' in repr(e))
 
 
-class HandlingModelsWithGenericRelationFields(TestCase):
+class GenericRelationTest(TestCase):
     def test_create_model_with_generic_relation(self):
         dummy = mommy.make_one(DummyGenericRelationModel)
         self.assertIsInstance(dummy, DummyGenericRelationModel)
 
 
-class HandlingContentTypeField(TestCase):
+class ContentTypeTest(TestCase):
     def test_create_model_with_contenttype_field(self):
         dummy = mommy.make_one(DummyGenericForeignKeyModel)
         self.assertIsInstance(dummy, DummyGenericForeignKeyModel)
