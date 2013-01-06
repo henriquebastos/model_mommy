@@ -53,6 +53,11 @@ class Person(models.Model):
 class Dog(models.Model):
     name = models.CharField(max_length=50)
     owner = models.ForeignKey('Person')
+    breed = models.ForeignKey('Breed', null=True)
+
+
+class Breed(models.Model):
+    name = models.CharField(max_length=50)
 
 
 class LonelyPerson(models.Model):

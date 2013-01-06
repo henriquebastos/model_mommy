@@ -104,6 +104,11 @@ class ForeignKeyTest(TestCase):
         bill = mommy.make_one(PaymentBill, user__profile__email="a@b.com")
         self.assertEqual('a@b.com', bill.user.profile.email)
 
+    def test_fk_attributes_dont_mix(self):
+        dog = mommy.make_one('Dog', breed__name='Beagle', owner__name='Charlie Brown')
+        self.assertEqual('Beagle', dog.breed.name)
+        self.assertEqual('Charlie Brown', dog.owner.name)
+
 
 class OneToOneTest(TestCase):
     def test_create_one_to_one(self):
