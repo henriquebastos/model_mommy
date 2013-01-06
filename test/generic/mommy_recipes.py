@@ -19,11 +19,11 @@ person = Recipe(Person,
 )
 
 dog = Recipe(Dog,
-    breed = 'Pug',
+    name = 'Rex',
     owner = foreign_key(person)
 )
 
 other_dog = Recipe(Dog,
-    breed = 'Basset',
+    name = 'Scooby',
     owner = foreign_key('person')
 )

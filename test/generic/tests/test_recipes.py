@@ -104,23 +104,23 @@ class TestExecutingRecipes(TestCase):
     """
     def test_model_with_foreign_key(self):
         dog = mommy.make_recipe('test.generic.dog')
-        self.assertEqual(dog.breed, 'Pug')
+        self.assertEqual(dog.name, 'Rex')
         self.assertIsInstance(dog.owner, Person)
         self.assertNotEqual(dog.owner.id, None)
 
         dog = mommy.prepare_recipe('test.generic.dog')
-        self.assertEqual(dog.breed, 'Pug')
+        self.assertEqual(dog.name, 'Rex')
         self.assertIsInstance(dog.owner, Person)
         self.assertNotEqual(dog.owner.id, None)
 
     def test_model_with_foreign_key_as_str(self):
         dog = mommy.make_recipe('test.generic.other_dog')
-        self.assertEqual(dog.breed, 'Basset')
+        self.assertEqual(dog.name, 'Scooby')
         self.assertIsInstance(dog.owner, Person)
         self.assertNotEqual(dog.owner.id, None)
 
         dog = mommy.prepare_recipe('test.generic.other_dog')
-        self.assertEqual(dog.breed, 'Basset')
+        self.assertEqual(dog.name, 'Scooby')
         self.assertIsInstance(dog.owner, Person)
         self.assertNotEqual(dog.owner.id, None)
 

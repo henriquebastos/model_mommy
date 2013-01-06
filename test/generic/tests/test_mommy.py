@@ -83,13 +83,13 @@ class ForeignKeyTest(TestCase):
         self.assertEqual(Dog.objects.all().count(), 0)
 
     def test_ForeignKey_model_field_population(self):
-        dog = mommy.make_one(Dog, breed='X1', owner__name='Bob')
-        self.assertEqual('X1', dog.breed)
+        dog = mommy.make_one(Dog, name='Rex', owner__name='Bob')
+        self.assertEqual('Rex', dog.name)
         self.assertEqual('Bob', dog.owner.name)
 
     def test_ForeignKey_model_field_population_should_work_with_prepare(self):
-        dog = mommy.prepare_one(Dog, breed='X1', owner__name='Bob')
-        self.assertEqual('X1', dog.breed)
+        dog = mommy.prepare_one(Dog, name='Rex', owner__name='Bob')
+        self.assertEqual('Rex', dog.name)
         self.assertEqual('Bob', dog.owner.name)
 
     def test_ForeignKey_model_field_population_for_not_required_fk(self):
