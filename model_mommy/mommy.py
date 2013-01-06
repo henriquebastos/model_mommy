@@ -225,17 +225,21 @@ class Mommy(object):
     #Method too big
     def _make_one(self, model, commit=True, **raw_attrs):
         m2m_objects = {}
+        attrs = {}
+        rel_attrs = {}
         is_rel_attr = lambda a: '__' in a
-        attrs = {a: v for a, v in raw_attrs.items() if not is_rel_attr(a)}
-        rel_attrs = {a: v for a, v in raw_attrs.items() if is_rel_attr(a)}
-        rel_fields = [a.split('__')[0] for a in rel_attrs.keys() if is_rel_attr(a)]
-
+        for attr, value in raw_attrs.items():
+            if is_rel_attr(attr):
+                rel, rel_or_field = attr.split('__', 1)
+                rel_attrs.setdefault(rel, {}).update({rel_or_field: value})
+            else:
+                attrs[attr] = value
 
         # Process normal model fields.
         for field in model._meta.fields:
             # TODO: There should be no different treatment for FKs.
-            if isinstance(field, ForeignKey) and field.name in rel_fields:
-                attrs[field.name] = self.generate_value(field, **rel_attrs)
+            if isinstance(field, ForeignKey) and field.name in rel_attrs:
+                attrs[field.name] = self.generate_value(field, **rel_attrs[field.name])
                 continue
 
             # Must be the 1st verification
@@ -314,7 +318,7 @@ class Mommy(object):
         generator_attrs = get_required_values(generator, field)
 
         if isinstance(field, ForeignKey):
-            generator_attrs.update(filter_fk_attrs(field, **fk_attrs))
+            generator_attrs.update(**fk_attrs)
 
         return generator(**generator_attrs)
 
@@ -343,16 +347,3 @@ def get_required_values(generator, field):
                                   Don't make mommy sad." % str(item))
 
     return rt
-
-def filter_fk_attrs(field, **fk_attrs):
-    clean_dict = {}
-
-    for k, v in fk_attrs.items():
-        if k.startswith(field.name + '__'):
-            splited_key = k.split('__')
-            key = '__'.join(splited_key[1:])
-            clean_dict[key] = v
-        else:
-            clean_dict[k] = v
-
-    return clean_dict
