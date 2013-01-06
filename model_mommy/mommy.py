@@ -267,9 +267,9 @@ class Mommy(object):
                 continue
 
             if not self.make_m2m:
-                m2m_dict[field.name] = []
+                m2m_objects[field.name] = []
             else:
-                m2m_dict[field.name] = self.generate_value(field)
+                m2m_objects[field.name] = self.generate_value(field)
 
         instance = model(**attrs)
 

@@ -106,12 +106,6 @@ class MommyCreatesAssociatedModels(TestCase):
         self.assertEqual(store.employees.count(), 0)
         self.assertEqual(store.customers.count(), 0)
 
-    def test_simple_creating_person_with_parameters(self):
-        kid = mommy.make_one(Person, happy=True, age=10, name='Mike')
-        self.assertEqual(kid.age, 10)
-        self.assertEqual(kid.happy, True)
-        self.assertEqual(kid.name, 'Mike')
-
     def test_creating_person_from_factory_using_paramters(self):
         person_mom = mommy.Mommy()
         person = person_mom.make_one(Person, happy=False, age=20, gender='M',
