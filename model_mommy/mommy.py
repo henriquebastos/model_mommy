@@ -41,7 +41,7 @@ def make_one(model, make_m2m=True, **attrs):
     which fields you want to define its values by yourself.
     """
     mommy = Mommy(model, make_m2m=make_m2m)
-    return mommy.make_one(**attrs)
+    return mommy.make(**attrs)
 
 
 def prepare_one(model, **attrs):
@@ -51,14 +51,15 @@ def prepare_one(model, **attrs):
     It fill the fields with random values or you can specify
     which fields you want to define its values by yourself.
     """
+
     mommy = Mommy(model)
-    return mommy.prepare(**attrs)
+    return mommy.make(_commit=False, **attrs)
 
 
 def make_many(model, quantity=None, **attrs):
     quantity = quantity or MAX_MANY_QUANTITY
     mommy = Mommy(model)
-    return [mommy.make_one(**attrs) for i in range(quantity)]
+    return mommy.make(_quantity=quantity, **attrs)
 
 def _recipe(name):
     splited_name = name.split('.')
