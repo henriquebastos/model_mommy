@@ -204,13 +204,24 @@ class Mommy(object):
     def make_one(self, **attrs):
         '''Creates and persists an instance of the model
         associated with Mommy instance.'''
-        return self._make_one(commit=True, **attrs)
+        return self.make(_commit=True, **attrs)
 
     def prepare(self, **attrs):
         '''Creates, but do not persists, an instance of the model
         associated with Mommy instance.'''
-        self.type_mapping[ForeignKey] = prepare_one
-        return self._make_one(commit=False, **attrs)
+        return self.make(_commit=False, **attrs)
+
+    def make(self, _quantity=1, _commit=True, **attrs):
+        # TODO: Improve this check
+        if _commit:
+            self.type_mapping[ForeignKey] = make_one
+        else:
+            self.type_mapping[ForeignKey] = prepare_one
+
+        if _quantity == 1:
+            return self._make_one(commit=_commit, **attrs)
+        elif _quantity > 1:
+            return [self._make_one(commit=_commit, **attrs) for i in xrange(_quantity)]
 
     def get_fields(self):
         return self.model._meta.fields + self.model._meta.many_to_many
