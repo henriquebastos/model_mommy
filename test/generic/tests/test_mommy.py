@@ -37,10 +37,10 @@ class ModelFinderTest(TestCase):
 
     def test_raise_model_not_found(self):
         with self.assertRaises(ModelNotFound):
-            mommy.Mommy('non_existing.Model')
+            mommy.prepare_one('non_existing.Model')
 
         with self.assertRaises(ModelNotFound):
-            mommy.Mommy('NonExistingModel')
+            mommy.prepare_one('NonExistingModel')
 
 
 class MommyCreatesSimpleModel(TestCase):
@@ -113,9 +113,10 @@ class MommyCreatesAssociatedModels(TestCase):
         self.assertEqual(kid.name, 'Mike')
 
     def test_creating_person_from_factory_using_paramters(self):
-        person_mom = mommy.Mommy(Person)
-        person = person_mom.make_one(happy=False, age=20, gender='M',
+        person_mom = mommy.Mommy()
+        person = person_mom.make_one(Person, happy=False, age=20, gender='M',
                                      name='John')
+
         self.assertEqual(person.age, 20)
         self.assertEqual(person.happy, False)
         self.assertEqual(person.name, 'John')

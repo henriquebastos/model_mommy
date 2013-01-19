@@ -40,8 +40,8 @@ def make_one(model, make_m2m=True, **attrs):
     It fill the fields with random values or you can specify
     which fields you want to define its values by yourself.
     """
-    mommy = Mommy(model, make_m2m=make_m2m)
-    return mommy.make(**attrs)
+    mommy = Mommy(make_m2m=make_m2m)
+    return mommy.make(model, **attrs)
 
 
 def prepare_one(model, **attrs):
@@ -51,15 +51,15 @@ def prepare_one(model, **attrs):
     It fill the fields with random values or you can specify
     which fields you want to define its values by yourself.
     """
-
-    mommy = Mommy(model)
-    return mommy.make(_commit=False, **attrs)
+    mommy = Mommy()
+    return mommy.make(model, _commit=False, **attrs)
 
 
 def make_many(model, quantity=None, **attrs):
     quantity = quantity or MAX_MANY_QUANTITY
-    mommy = Mommy(model)
-    return mommy.make(_quantity=quantity, **attrs)
+    mommy = Mommy()
+    return mommy.make(model, _quantity=quantity, **attrs)
+
 
 def _recipe(name):
     splited_name = name.split('.')
@@ -193,26 +193,24 @@ class Mommy(object):
     # rebuilding the model cache for every make_* or prepare_* call.
     finder = ModelFinder()
 
-    def __init__(self, model, make_m2m=True):
+    def __init__(self, make_m2m=True):
         self.make_m2m = make_m2m
         self.type_mapping = default_mapping.copy()
 
-        if isinstance(model, ModelBase):
-            self.model = model
-        else:
-            self.model = self.finder.get_model(model)
-
-    def make_one(self, **attrs):
+    def make_one(self, model, **attrs):
         '''Creates and persists an instance of the model
         associated with Mommy instance.'''
-        return self.make(_commit=True, **attrs)
+        return self.make(model, _commit=True, **attrs)
 
-    def prepare(self, **attrs):
+    def prepare(self, model, **attrs):
         '''Creates, but do not persists, an instance of the model
         associated with Mommy instance.'''
-        return self.make(_commit=False, **attrs)
+        return self.make(model, _commit=False, **attrs)
 
-    def make(self, _quantity=1, _commit=True, **attrs):
+    def make(self, model, _quantity=1, _commit=True, **attrs):
+        if not isinstance(model, ModelBase):
+            model = self.finder.get_model(model)
+
         # TODO: Improve this check
         if _commit:
             self.type_mapping[ForeignKey] = make_one
@@ -220,22 +218,21 @@ class Mommy(object):
             self.type_mapping[ForeignKey] = prepare_one
 
         if _quantity == 1:
-            return self._make_one(commit=_commit, **attrs)
+            return self._make_one(model, commit=_commit, **attrs)
         elif _quantity > 1:
-            return [self._make_one(commit=_commit, **attrs) for i in xrange(_quantity)]
-
-    def get_fields(self):
-        return self.model._meta.fields + self.model._meta.many_to_many
+            return [self._make_one(model, commit=_commit, **attrs) for i in xrange(_quantity)]
 
     #Method too big
-    def _make_one(self, commit=True, **attrs):
+    def _make_one(self, model_klass, commit=True, **attrs):
         m2m_dict = {}
         is_fk_field = lambda x: '__' in x
         model_attrs = dict((k, v) for k, v in attrs.items() if not is_fk_field(k))
         fk_attrs = dict((k, v) for k, v in attrs.items() if is_fk_field(k))
         fk_fields = [x.split('__')[0] for x in fk_attrs.keys() if is_fk_field(x)]
 
-        for field in self.get_fields():
+        fields = model_klass._meta.fields + model_klass._meta.many_to_many
+
+        for field in fields:
             field_value_not_defined = field.name not in model_attrs
 
             if isinstance(field, (AutoField, generic.GenericRelation)):
@@ -268,7 +265,7 @@ class Mommy(object):
                 else:
                     model_attrs[field.name] = self.generate_value(field)
 
-        instance = self.model(**model_attrs)
+        instance = model_klass(**model_attrs)
 
         # m2m only works for persisted instances
         if commit:
